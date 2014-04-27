@@ -1,0 +1,11 @@
+extends layout
+
+block head
+  link(rel='stylesheet', href='/css/signin.css')
+  
+block content
+  div.container
+    form.form-signin(role='form', action='/users/doLogin', method='post')
+      input.form-control(type='text', placeholder='Username',name="username", required, autofocus)
+      input.form-control(type='password', placeholder='Password',name='password' required)
+      button(class='btn btn-lg btn-primary btn-block', type='submit') Log in

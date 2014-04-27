@@ -2,35 +2,39 @@
 //  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
+var path = require('path');
 
 
 /**
  *  Define the sample application.
  */
-var SampleApp = function() {
+var App = function() {
 
     //  Scope.
     var self = this;
-
-
+	
+	
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */
 
-    /**
+	/**
      *  Set up server IP address and port # using env variables/defaults.
      */
     self.setupVariables = function() {
         //  Set the environment variables we need.
-        self.ipaddress = process.env.OPENSHIFT_INTERNAL_IP || process.env.OPENSHIFT_NODEJS_IP;
-        self.port      = process.env.OPENSHIFT_INTERNAL_PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080;
-
+        self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
+        self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;		
+		self.appname   = process.env.OPENSHIFT_APP_NAME || 'test';
+		
+ 		
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
             //  allows us to run/test the app locally.
             console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
             self.ipaddress = "127.0.0.1";
         };
+			
     };
 
 
@@ -90,54 +94,27 @@ var SampleApp = function() {
     /*  ================================================================  */
 
     /**
-     *  Create the routing table entries + handlers for the application.
-     */
-    self.createRoutes = function() {
-        self.routes = { };
-
-        // Routes for /health, /asciimo, /env and /
-        self.routes['/health'] = function(req, res) {
-            res.send('1');
-        };
-
-        self.routes['/asciimo'] = function(req, res) {
-            var link = "http://i.imgur.com/kmbjB.png";
-            res.send("<html><body><img src='" + link + "'></body></html>");
-        };
-
-        self.routes['/env'] = function(req, res) {
-            var content = 'Version: ' + process.version + '\n<br/>\n' +
-                          'Env: {<br/>\n<pre>';
-            //  Add env entries.
-            for (var k in process.env) {
-               content += '   ' + k + ': ' + process.env[k] + '\n';
-            }
-            content += '}\n</pre><br/>\n'
-            res.send(content);
-            res.send('<html>\n' +
-                     '  <head><title>Node.js Process Env</title></head>\n' +
-                     '  <body>\n<br/>\n' + content + '</body>\n</html>');
-        };
-
-        self.routes['/'] = function(req, res) {
-            res.set('Content-Type', 'text/html');
-            res.send(self.cache_get('index.html') );
-        };
-    };
-
-
-    /**
      *  Initialize the server (express) and create the routes and register
      *  the handlers.
      */
-    self.initializeServer = function() {
-        self.createRoutes();
-        self.app = express.createServer();
-
-        //  Add handlers for the app (from the routes).
-        for (var r in self.routes) {
-            self.app.get(r, self.routes[r]);
-        }
+    self.initializeServer = function() {        
+        self.app = express();
+        self.db = require('./models/db')(self.appname);
+		self.app.set('views', path.join(__dirname, 'views'));
+		self.app.set('view engine', 'jade');
+		self.app.use(require('stylus').middleware({
+			src: './public',
+			compress: false
+		}));
+		self.app.use(express.static(path.join(__dirname, 'public')));
+		self.app.use(express.logger({ format: ':remote-addr :method :url ::response-time ms' }));
+		self.app.use(express.json());       	// to support JSON-encoded bodies
+		self.app.use(express.urlencoded()); 	// to support URL-encoded bodies
+        self.app.use(express.methodOverride());
+		self.app.use(express.responseTime());
+		self.app.use(self.app.router);				
+		self.routes = require('./routes')(self.app, self.db);		
+		self.app.use(express.errorHandler());	
     };
 
 
@@ -158,8 +135,8 @@ var SampleApp = function() {
      *  Start the server (starts up the sample application).
      */
     self.start = function() {
-        //  Start the app on the specific interface (and port).
-        self.app.listen(self.port, self.ipaddress, function() {
+		//  Start the app on the specific interface (and port).
+		self.app.listen(self.port, self.ipaddress, function() {
             console.log('%s: Node server started on %s:%d ...',
                         Date(Date.now() ), self.ipaddress, self.port);
         });
@@ -172,7 +149,7 @@ var SampleApp = function() {
 /**
  *  main():  Main code.
  */
-var zapp = new SampleApp();
+var zapp = new App();
 zapp.initialize();
 zapp.start();
 
