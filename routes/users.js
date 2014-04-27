@@ -1,4 +1,5 @@
 var mongoose = require( 'mongoose' );
+var bcrypt = require('bcrypt');
 var User = mongoose.model( 'User' );
 
 /**
@@ -25,9 +26,11 @@ exports.create = function(req, res){
 	if(!req.is('json')){
 		res.send(406, 'Not Acceptable');
 	};
+	bcrypt.hash(req.body.password, 10, function(err, hash) {
+		if(err) throw err;
 		User.create({
 				username: req.body.username,
-				hash_password: req.body.password
+				hash_password: hash
 			}, 
 			function( err, user ){
 				if(err){
@@ -35,7 +38,8 @@ exports.create = function(req, res){
 				};			
 				res.json(user);
 		});	
-		
+	});
+	
 };
 
 // Remove an user
@@ -63,13 +67,18 @@ exports.doLogin = function(req, res){
 			if(err) throw err;
 			console.log(user);
 			if(user){
-				if(user.hash_password = req.body.password){
-					// login succes
-					res.render('index', { title: 'GomWare' });				
-				} else {
-					// incorrect password
-					res.render('login', { title: 'GomWare' });
-				}
+				// check if the password is correct
+				bcrypt.compare(req.body.password, user.hash_password, function(err, success) {
+					if(err) throw err;
+					if(success){
+						// login succes
+						res.render('index', { title: 'GomWare' });
+					} else {
+						// incorrect password 
+						res.render('login', { title: 'GomWare' });
+					}
+				});
+				
 			} else {
 				// no match user
 				res.render('login', { title: 'GomWare' });
