@@ -102,10 +102,6 @@ var App = function() {
         self.db = require('./models/db')(self.appname);
 		self.app.set('views', path.join(__dirname, 'views'));
 		self.app.set('view engine', 'jade');
-		self.app.use(require('stylus').middleware({
-			src: './public',
-			compress: false
-		}));
 		self.app.use(express.static(path.join(__dirname, 'public')));
 		self.app.use(express.logger({ format: ':remote-addr :method :url ::response-time ms' }));
 		self.app.use(express.json());       	// to support JSON-encoded bodies
