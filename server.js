@@ -1,5 +1,4 @@
 #!/bin/env node
-//  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
 var path = require('path');
@@ -13,12 +12,7 @@ var App = function() {
     //  Scope.
     var self = this;
 	
-	
-    /*  ================================================================  */
-    /*  Helper functions.                                                 */
-    /*  ================================================================  */
-
-	/**
+   	/**
      *  Set up server IP address and port # using env variables/defaults.
      */
     self.setupVariables = function() {
@@ -88,11 +82,6 @@ var App = function() {
         });
     };
 
-
-    /*  ================================================================  */
-    /*  App server functions (main app logic here).                       */
-    /*  ================================================================  */
-
     /**
      *  Initialize the server (express) and create the routes and register
      *  the handlers.
@@ -138,7 +127,7 @@ var App = function() {
         });
     };
 
-};   /*  Sample Application.  */
+};   // End Sample Application.
 
 
 

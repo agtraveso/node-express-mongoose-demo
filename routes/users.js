@@ -1,11 +1,12 @@
+/**
+ * Manages User routing
+ */ 
+
 var mongoose = require( 'mongoose' );
 var bcrypt = require('bcrypt');
 var User = mongoose.model( 'User' );
 
-/**
- * CRUD
- */
-
+// Find all
 exports.index = function(req, res) {
     User.find({},function(err, users) {
 		if(err) throw err;
@@ -50,13 +51,12 @@ exports.destroy = function(req,res) {
 	});
 };
 
-/**
- * Other user routing
- */
+// Redirects to login page
 exports.login = function(req, res){
   res.render('login', { title: 'GomWare' });
 };
 
+// Log an user
 exports.doLogin = function(req, res){
 	
 	User.findOne(
