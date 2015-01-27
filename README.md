@@ -1,3 +1,5 @@
 demo Application in Node[.js]
 ====================================================================
-This git repository is a sample Node application.
+That's a simple demo app in node.js using express, mongoose, bcrypt and jade.
+
+You can see the result on: http://demoapp-gomware.rhcloud.com/
